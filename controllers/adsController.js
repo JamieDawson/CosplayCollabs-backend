@@ -12,13 +12,11 @@ const createAd = async (req, res) => {
     keywords,
   } = req.body;
 
-  // Check required fields
   if (!user_id || !title) {
     return res.status(400).json({ error: "user_id and title are required" });
   }
 
   try {
-    // Insert ad into the database, do not include the `id` since it's auto-generated
     const query = `
       INSERT INTO ads (
         user_id,
@@ -29,9 +27,8 @@ const createAd = async (req, res) => {
         city,
         instagram_post_url,
         keywords
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8
-      ) RETURNING *;
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *;
     `;
     const values = [
       user_id,
@@ -41,7 +38,7 @@ const createAd = async (req, res) => {
       state || null,
       city || null,
       instagramPostUrl || null,
-      keywords ? JSON.stringify(keywords) : null, // Save keywords as JSON
+      keywords ? JSON.stringify(keywords) : null,
     ];
 
     const result = await pool.query(query, values);
@@ -52,4 +49,22 @@ const createAd = async (req, res) => {
   }
 };
 
-module.exports = { createAd };
+// Controller to get ad counts by country
+const getAdsCountByCountry = async (req, res) => {
+  console.log("Fetching ad counts by country...");
+  try {
+    const query = `
+      SELECT country, COUNT(*) AS ad_count
+      FROM ads
+      GROUP BY country;
+    `;
+    const result = await pool.query(query);
+    console.log(result);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ad counts by country:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { createAd, getAdsCountByCountry };

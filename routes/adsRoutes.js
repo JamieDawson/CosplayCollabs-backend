@@ -2,8 +2,11 @@
 const express = require("express");
 const router = express.Router();
 
-// Import the controller
-const { createAd } = require("../controllers/adsController");
+// Import the controllers
+const {
+  createAd,
+  getAdsCountByCountry,
+} = require("../controllers/adsController");
 
 // Handle root route or ads-related routes
 router.get("/", (req, res) => {
@@ -12,5 +15,8 @@ router.get("/", (req, res) => {
 
 // POST route to create a new ad
 router.post("/api/ads", createAd);
+
+// GET route to get ad counts by country
+router.get("/api/ads/count-by-country", getAdsCountByCountry);
 
 module.exports = router;
