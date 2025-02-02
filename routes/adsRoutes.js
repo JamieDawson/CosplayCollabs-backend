@@ -6,6 +6,7 @@ const router = express.Router();
 const {
   createAd,
   getAdsCountByCountry,
+  getAdsByLocation,
 } = require("../controllers/adsController");
 
 // Handle root route or ads-related routes
@@ -18,5 +19,8 @@ router.post("/api/ads", createAd);
 
 // GET route to get ad counts by country
 router.get("/api/ads/count-by-country", getAdsCountByCountry);
+
+//GET route to get ads by location
+router.get("/api/ads/:country/:state/:city", getAdsByLocation);
 
 module.exports = router;

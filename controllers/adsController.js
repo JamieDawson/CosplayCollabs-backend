@@ -67,4 +67,24 @@ const getAdsCountByCountry = async (req, res) => {
   }
 };
 
-module.exports = { createAd, getAdsCountByCountry };
+//Pass in Country, State, and City to get ads for that location
+const getAdsByLocation = async (req, res) => {
+  const { country, state, city } = req.params;
+
+  try {
+    const query = `
+      SELECT * FROM ads
+      WHERE country = $1 AND state = $2 AND city = $3;
+    `;
+    const values = [country, state, city];
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ads by location:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = { createAd, getAdsCountByCountry, getAdsByLocation };
