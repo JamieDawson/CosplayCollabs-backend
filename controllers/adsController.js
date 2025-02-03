@@ -67,6 +67,22 @@ const getAdsCountByCountry = async (req, res) => {
   }
 };
 
+// Used for the front page to get the most recent ads
+const getMostRecentAds = async (req, res) => {
+  try {
+    const query = `
+      SELECT * FROM ads
+      ORDER BY created_at DESC
+      LIMIT 10;
+    `;
+    const result = await pool.query(query);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching most recent ads:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 //Pass in Country, State, and City to get ads for that location
 const getAdsByLocation = async (req, res) => {
   const { country, state, city } = req.params;
@@ -87,4 +103,9 @@ const getAdsByLocation = async (req, res) => {
   }
 };
 
-module.exports = { createAd, getAdsCountByCountry, getAdsByLocation };
+module.exports = {
+  createAd,
+  getAdsCountByCountry,
+  getAdsByLocation,
+  getMostRecentAds,
+};
