@@ -24,6 +24,7 @@ router.get("/api/ads/count-by-country", getAdsCountByCountry);
 //GET route to get ads by location
 router.get("/api/ads/:country/:state/:city", getAdsByLocation);
 
+//GET most recent ads in ads database
 router.get("/api/ads/most-recent", getMostRecentAds);
 
 module.exports = router;

@@ -1,6 +1,8 @@
+// index.js
 const express = require("express");
 const cors = require("cors");
 const adsRoutes = require("./routes/adsRoutes");
+const usersRoutes = require("./routes/userRoutes"); // Import the new users route
 
 const app = express();
 const port = 3000;
@@ -11,17 +13,9 @@ app.use(cors());
 
 // Routes
 app.use("/", adsRoutes);
+app.use("/", usersRoutes);
 
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-/*
-db.js: Centralizes the database connection configuration to keep it reusable.
-adsController.js: Handles the logic for creating ads.
-adsRoutes.js: Maps HTTP requests to the appropriate controller functions.
-index.js: Serves as the main file to set up middleware and start the server.
-
-This structure adheres to the Model-View-Controller (MVC) pattern.
-*/
