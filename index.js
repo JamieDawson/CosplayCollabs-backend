@@ -2,7 +2,7 @@
 const express = require("express");
 const cors = require("cors");
 const adsRoutes = require("./routes/adsRoutes");
-const usersRoutes = require("./routes/userRoutes"); // Import the new users route
+const usersRoutes = require("./routes/usersRoutes"); // Updated users routes
 
 const app = express();
 const port = 3000;
