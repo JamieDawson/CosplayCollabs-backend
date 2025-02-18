@@ -30,6 +30,26 @@ const completeProfile = async (req, res) => {
   }
 };
 
+//GET user by auth0 id for sign up
+const getUserByAuth0Id = async (req, res) => {
+  const { auth0_id } = req.body;
+
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE auth0_id = $1", [
+      auth0_id,
+    ]);
+    if (result.rows.length > 0) {
+      res.status(200).json({ success: true, user: result.rows[0] });
+    } else {
+      res.status(404).json({ success: false, message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   completeProfile,
+  getUserByAuth0Id,
 };
