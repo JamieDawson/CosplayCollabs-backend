@@ -1,10 +1,10 @@
+// controllers/usersController.js
 const pool = require("../config/db");
 
-// Complete a users profile after auth0 signup process
+// Complete a user's profile after Auth0 signup process
 const completeProfile = async (req, res) => {
   const { auth0_id, email, name, username } = req.body;
 
-  // Validate required fields
   if (!auth0_id || !email) {
     return res.status(400).json({ error: "auth0_id and email are required." });
   }
@@ -21,8 +21,6 @@ const completeProfile = async (req, res) => {
     `;
     const values = [auth0_id, email, name, username];
     const result = await pool.query(query, values);
-
-    // Respond with the updated or inserted user record
     res.status(200).json({ success: true, user: result.rows[0] });
   } catch (error) {
     console.error("Error updating user:", error);
@@ -30,10 +28,10 @@ const completeProfile = async (req, res) => {
   }
 };
 
-//GET user by auth0 id for sign up
+// GET user by Auth0 ID from URL params
 const getUserByAuth0Id = async (req, res) => {
-  const { auth0_id } = req.body;
-
+  const { auth0_id } = req.params;
+  console.log("Received auth0_id:", auth0_id); // <-- temporary log
   try {
     const result = await pool.query("SELECT * FROM users WHERE auth0_id = $1", [
       auth0_id,
@@ -49,7 +47,24 @@ const getUserByAuth0Id = async (req, res) => {
   }
 };
 
+//DELETE ad by ID
+// NOT WORKING?
+const deleteAdById = async (req, res) => {
+  console.log("deleteAdById");
+  const { id } = req.params;
+  console.log(id);
+  try {
+    const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
+    console.log(result);
+    res.status(200).json({ success: true, message: "Ad deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ad:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   completeProfile,
   getUserByAuth0Id,
+  deleteAdById,
 };
