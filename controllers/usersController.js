@@ -56,6 +56,11 @@ const deleteAdById = async (req, res) => {
   try {
     const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
     console.log(result);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
     res.status(200).json({ success: true, message: "Ad deleted successfully" });
   } catch (error) {
     console.error("Error deleting ad:", error);
