@@ -68,8 +68,25 @@ const deleteAdById = async (req, res) => {
   }
 };
 
+//UPDATE ad by ID
+const updateAdById = async (req, res) => {
+  console.log("updatedAdById");
+  const { id } = req.params; //reading from URL
+
+  try {
+    const result = await pool.query(
+      "UPDATE ads SET title = 'I DID IT' WHERE id = $1",
+      [id]
+    );
+    res.status(200).json({ success: true, message: "Ad updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   completeProfile,
   getUserByAuth0Id,
   deleteAdById,
+  updateAdById,
 };
