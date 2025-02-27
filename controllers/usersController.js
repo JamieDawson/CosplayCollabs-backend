@@ -68,18 +68,81 @@ const deleteAdById = async (req, res) => {
   }
 };
 
-//UPDATE ad by ID
 const updateAdById = async (req, res) => {
-  console.log("updatedAdById");
-  const { id } = req.params; //reading from URL
+  console.log("updateAdById called");
+
+  const { id } = req.params;
+  const {
+    title,
+    description,
+    country,
+    state,
+    city,
+    instagramPostUrl,
+    keywords,
+  } = req.body;
+
+  console.log("Updating Ad ID:", id);
+  console.log("New Data:", {
+    title,
+    description,
+    country,
+    state,
+    city,
+    instagramPostUrl,
+    keywords,
+  });
 
   try {
-    const result = await pool.query(
-      "UPDATE ads SET title = 'I DID IT' WHERE id = $1",
-      [id]
-    );
+    const fieldsToUpdate = [];
+    const values = [];
+    let query = "UPDATE ads SET ";
+
+    if (title) {
+      fieldsToUpdate.push("title = $" + (values.length + 1));
+      values.push(title);
+    }
+    if (description) {
+      fieldsToUpdate.push("description = $" + (values.length + 1));
+      values.push(description);
+    }
+    if (country) {
+      fieldsToUpdate.push("country = $" + (values.length + 1));
+      values.push(country);
+    }
+    if (state) {
+      fieldsToUpdate.push("state = $" + (values.length + 1));
+      values.push(state);
+    }
+    if (city) {
+      fieldsToUpdate.push("city = $" + (values.length + 1));
+      values.push(city);
+    }
+    if (instagramPostUrl) {
+      fieldsToUpdate.push("instagram_post_url = $" + (values.length + 1));
+      values.push(instagramPostUrl);
+    }
+    if (Array.isArray(keywords)) {
+      fieldsToUpdate.push("keywords = $" + (values.length + 1));
+      values.push(JSON.stringify(keywords)); // ✅ Convert array to JSON string
+    }
+
+    if (fieldsToUpdate.length === 0) {
+      return res.status(400).json({ error: "No fields provided for update" });
+    }
+
+    query += fieldsToUpdate.join(", ") + " WHERE id = $" + (values.length + 1);
+    values.push(id);
+
+    const result = await pool.query(query, values);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
     res.status(200).json({ success: true, message: "Ad updated successfully" });
   } catch (error) {
+    console.error("Error updating ad:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
