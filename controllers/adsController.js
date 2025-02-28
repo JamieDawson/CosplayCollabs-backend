@@ -103,9 +103,30 @@ const getAdsByLocation = async (req, res) => {
   }
 };
 
+const getAdsByUserId = async (req, res) => {
+  const { user_id } = req.params;
+
+  console.log(user_id);
+  try {
+    const query = `
+      SELECT * FROM ads
+      WHERE user_id = $1;
+    `;
+    const values = [user_id];
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ads by location:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   createAd,
   getAdsCountByCountry,
   getAdsByLocation,
   getMostRecentAds,
+  getAdsByUserId,
 };
