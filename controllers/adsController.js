@@ -16,17 +16,21 @@ const createAd = async (req, res) => {
     return res.status(400).json({ error: "user_id and title are required" });
   }
 
+  console.log("Inserting ad with values:", {
+    user_id,
+    title,
+    description,
+    country,
+    state,
+    city,
+    instagramPostUrl,
+    keywords,
+  });
+
   try {
     const query = `
       INSERT INTO ads (
-        user_id,
-        title,
-        description,
-        country,
-        state,
-        city,
-        instagram_post_url,
-        keywords
+        user_id, title, description, country, state, city, instagram_post_url, keywords
       ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *;
     `;
@@ -41,11 +45,16 @@ const createAd = async (req, res) => {
       keywords ? JSON.stringify(keywords) : null,
     ];
 
+    console.log("Query:", query);
+    console.log("Values:", values);
+
     const result = await pool.query(query, values);
     res.status(201).json({ success: true, ad: result.rows[0] });
   } catch (error) {
     console.error("Error inserting ad:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res
+      .status(500)
+      .json({ error: "Internal server error", details: error.message });
   }
 };
 
@@ -69,6 +78,7 @@ const getAdsCountByCountry = async (req, res) => {
 
 // Used for the front page to get the most recent ads
 const getMostRecentAds = async (req, res) => {
+  console.log("getMostRecentAds called");
   try {
     const query = `
       SELECT * FROM ads
@@ -76,8 +86,11 @@ const getMostRecentAds = async (req, res) => {
       LIMIT 10;
     `;
     const result = await pool.query(query);
+    console.log("RESULT: " + result);
     res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
+    console.log("HERERERERE");
+
     console.error("Error fetching most recent ads:", error);
     res.status(500).json({ error: "Internal server error" });
   }
@@ -105,6 +118,9 @@ const getAdsByLocation = async (req, res) => {
 
 const getAdsByUserId = async (req, res) => {
   const { user_id } = req.params;
+  if (!user_id) {
+    console.log("Missing user_id in getAdsByUserId");
+  }
 
   console.log(user_id);
   try {

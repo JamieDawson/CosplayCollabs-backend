@@ -3,7 +3,7 @@ const pool = require("../config/db");
 
 // Complete a user's profile after Auth0 signup process
 const completeProfile = async (req, res) => {
-  const { auth0_id, email, name, username } = req.body;
+  const { auth0_id, email, full_name, username } = req.body;
 
   if (!auth0_id || !email) {
     return res.status(400).json({ error: "auth0_id and email are required." });
@@ -19,7 +19,7 @@ const completeProfile = async (req, res) => {
                     username = EXCLUDED.username
       RETURNING *;
     `;
-    const values = [auth0_id, email, name, username];
+    const values = [auth0_id, email, full_name, username];
     const result = await pool.query(query, values);
     res.status(200).json({ success: true, user: result.rows[0] });
   } catch (error) {
