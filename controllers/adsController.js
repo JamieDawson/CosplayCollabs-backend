@@ -139,10 +139,30 @@ const getAdsByUserId = async (req, res) => {
   }
 };
 
+const getAdsByTag = async (req, res) => {
+  // console.log("getAdsByTag");
+  const { tag } = req.params;
+  // console.log(tag);
+
+  try {
+    const query = `SELECT * FROM ads
+       WHERE EXISTS (
+         SELECT 1 FROM jsonb_array_elements_text(keywords) AS kw
+          WHERE LOWER(kw.value) = $1
+    );`;
+
+    const values = [tag];
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {}
+};
+
 module.exports = {
   createAd,
   getAdsCountByCountry,
   getAdsByLocation,
   getMostRecentAds,
   getAdsByUserId,
+  getAdsByTag,
 };

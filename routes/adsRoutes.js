@@ -9,6 +9,7 @@ const {
   getAdsByLocation,
   getMostRecentAds,
   getAdsByUserId,
+  getAdsByTag,
 } = require("../controllers/adsController");
 
 // Handle root route or ads-related routes
@@ -30,5 +31,8 @@ router.get("/api/ads/most-recent", getMostRecentAds);
 
 //GET ads by user_id
 router.get("/api/ads/user/:user_id", getAdsByUserId);
+
+//GET ads by value founds in array of tags.
+router.get("/api/ads/ads-by-tag/:tag", getAdsByTag);
 
 module.exports = router;
