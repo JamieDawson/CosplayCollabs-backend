@@ -17,5 +17,5 @@ app.use("/", usersRoutes);
 
 // Start the server
 app.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`OUTER LAYER Server is running on http://localhost:${port}`);
 });
