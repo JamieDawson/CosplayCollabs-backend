@@ -10,6 +10,7 @@ const {
   getMostRecentAds,
   getAdsByUserId,
   getAdsByTag,
+  getAdsByState,
 } = require("../controllers/adsController");
 
 // Handle root route or ads-related routes
@@ -23,7 +24,9 @@ router.post("/api/ads", createAd);
 // GET route to get ad counts by country
 router.get("/api/ads/count-by-country", getAdsCountByCountry);
 
-//GET route to get ads by location
+router.get("/api/ads/by-state/:country/:state", getAdsByState);
+
+//GET route to get ads by city
 router.get("/api/ads/:country/:state/:city", getAdsByLocation);
 
 //GET most recent ads in ads database

@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+//Create an ad and store it in the Postgres database.
 const createAd = async (req, res) => {
   const {
     user_id,
@@ -116,6 +117,21 @@ const getAdsByLocation = async (req, res) => {
   }
 };
 
+const getAdsByState = async (req, res) => {
+  const { country, state } = req.params;
+
+  try {
+    const query = `SELECT * FROM ads WHERE country=$1 AND state=$2`;
+    const values = [country, state];
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: "Not pulling ads by state" });
+  }
+};
+
+//Get the ads by a Users ID. This is used for users profiles!
 const getAdsByUserId = async (req, res) => {
   const { user_id } = req.params;
   if (!user_id) {
@@ -139,6 +155,7 @@ const getAdsByUserId = async (req, res) => {
   }
 };
 
+//Get ads by users tags. Is triggered when a user clicks on a tag and is redirected to the tags page
 const getAdsByTag = async (req, res) => {
   // console.log("getAdsByTag");
   const { tag } = req.params;
@@ -165,4 +182,5 @@ module.exports = {
   getMostRecentAds,
   getAdsByUserId,
   getAdsByTag,
+  getAdsByState,
 };
