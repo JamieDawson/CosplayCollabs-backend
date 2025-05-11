@@ -24,6 +24,7 @@ router.post("/api/ads", createAd);
 // GET route to get ad counts by country
 router.get("/api/ads/count-by-country", getAdsCountByCountry);
 
+//GEt route by state
 router.get("/api/ads/by-state/:country/:state", getAdsByState);
 
 //GET route to get ads by city

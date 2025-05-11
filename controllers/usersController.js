@@ -1,5 +1,7 @@
 // controllers/usersController.js
 const pool = require("../config/db");
+require("dotenv").config();
+const axios = require("axios");
 
 // Complete a user's profile after Auth0 signup process
 const completeProfile = async (req, res) => {
@@ -48,7 +50,6 @@ const getUserByAuth0Id = async (req, res) => {
 };
 
 //DELETE ad by ID
-// NOT WORKING?
 const deleteAdById = async (req, res) => {
   console.log("deleteAdById");
   const { id } = req.params;
@@ -147,9 +148,74 @@ const updateAdById = async (req, res) => {
   }
 };
 
+//DELETE user from both Auth0 and Postgres Users table!
+const deleteUser = async (req, res) => {
+  try {
+    const userId = req.params.id; // Make sure to send this as a URL param
+    const tokenResult = await pool.query(`
+      SELECT *, (NOW() - created_at) > INTERVAL '23 hours' AS is_expired 
+      FROM auth0_tokens 
+      WHERE id = 1;
+    `);
+
+    let token = tokenResult.rows[0].token;
+    const isExpired = tokenResult.rows[0].is_expired;
+
+    // If token is expired, fetch a new one
+    if (isExpired) {
+      console.log("Token older than 23 hours. Requesting new token...");
+
+      const authResponse = await axios.post(
+        "https://dev-k0kqobh465kbl3af.us.auth0.com/oauth/token",
+        qs.stringify({
+          grant_type: "client_credentials",
+          client_id: process.env.AUTH0_CLIENT_ID,
+          client_secret: process.env.AUTH0_CLIENT_SECRET,
+          audience: "https://dev-k0kqobh465kbl3af.us.auth0.com/api/v2/",
+        }),
+        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+      );
+
+      token = authResponse.data.access_token;
+
+      // Store new token in DB
+      await pool.query(
+        "UPDATE auth0_tokens SET token = $1, created_at = NOW() WHERE id = 1",
+        [token]
+      );
+    } else {
+      console.log("Token is fresh. Reusing...");
+    }
+
+    // Delete user from Auth0
+    await axios.delete(
+      `https://dev-k0kqobh465kbl3af.us.auth0.com/api/v2/users/${encodeURIComponent(
+        userId
+      )}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // Delete user from your Users table (and cascade ads if FK is set up)
+    await pool.query("DELETE FROM users WHERE auth0_id = $1", [userId]);
+
+    res.status(200).json({ success: true, message: "User deleted." });
+  } catch (error) {
+    console.error(
+      "Error deleting user:",
+      error.response?.data || error.message
+    );
+    res.status(500).json({ success: false, message: "Deletion failed." });
+  }
+};
+
 module.exports = {
   completeProfile,
   getUserByAuth0Id,
   deleteAdById,
   updateAdById,
+  deleteUser,
 };

@@ -117,6 +117,7 @@ const getAdsByLocation = async (req, res) => {
   }
 };
 
+//Get ads by state
 const getAdsByState = async (req, res) => {
   const { country, state } = req.params;
 
