@@ -151,7 +151,7 @@ const updateAdById = async (req, res) => {
 //DELETE user from both Auth0 and Postgres Users table!
 const deleteUser = async (req, res) => {
   try {
-    const userId = req.params.id; // Make sure to send this as a URL param
+    const userId = req.params.id;
     const tokenResult = await pool.query(`
       SELECT *, (NOW() - created_at) > INTERVAL '23 hours' AS is_expired 
       FROM auth0_tokens 
@@ -199,8 +199,11 @@ const deleteUser = async (req, res) => {
       }
     );
 
-    // Delete user from your Users table (and cascade ads if FK is set up)
+    // Delete user from the  Users table (and cascade ads if FK is set up)
     await pool.query("DELETE FROM users WHERE auth0_id = $1", [userId]);
+
+    //Delete ads from the Ads table where user_id matches
+    await pool.query("DELETE FROM ads WHERE user_id = $1", [userId]);
 
     res.status(200).json({ success: true, message: "User deleted." });
   } catch (error) {
