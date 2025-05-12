@@ -165,27 +165,41 @@ const deleteUser = async (req, res) => {
     // If token is expired, fetch a new one
     if (isExpired) {
       console.log("Token older than 23 hours. Requesting new token...");
+      console.log("Client ID:", process.env.AUTH0_CLIENT_ID);
+      console.log("Client Secret exists:", !!process.env.AUTH0_CLIENT_SECRET);
 
-      const authResponse = await axios.post(
-        "https://dev-k0kqobh465kbl3af.us.auth0.com/oauth/token",
-        qs.stringify({
-          grant_type: "client_credentials",
-          client_id: process.env.AUTH0_CLIENT_ID,
-          client_secret: process.env.AUTH0_CLIENT_SECRET,
-          audience: "https://dev-k0kqobh465kbl3af.us.auth0.com/api/v2/",
-        }),
-        { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
-      );
+      try {
+        const authResponse = await axios.post(
+          "https://dev-k0kqobh465kbl3af.us.auth0.com/oauth/token",
+          new URLSearchParams({
+            grant_type: "client_credentials",
+            client_id: process.env.AUTH0_CLIENT_ID,
+            client_secret: process.env.AUTH0_CLIENT_SECRET,
+            audience: "https://dev-k0kqobh465kbl3af.us.auth0.com/api/v2/",
+          }).toString(),
+          {
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          }
+        );
 
-      token = authResponse.data.access_token;
+        token = authResponse.data.access_token;
+        console.log("New token is: ", token);
 
-      // Store new token in DB
-      await pool.query(
-        "UPDATE auth0_tokens SET token = $1, created_at = NOW() WHERE id = 1",
-        [token]
-      );
-    } else {
-      console.log("Token is fresh. Reusing...");
+        await pool.query(
+          "UPDATE auth0_tokens SET token = $1, created_at = NOW() WHERE id = 1",
+          [token]
+        );
+      } catch (tokenErr) {
+        console.error(
+          "❌ Failed to get new token:",
+          tokenErr.response?.data || tokenErr.message
+        );
+        return res
+          .status(500)
+          .json({ success: false, message: "Failed to get Auth0 token" });
+      }
     }
 
     // Delete user from Auth0
