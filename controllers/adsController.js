@@ -69,7 +69,7 @@ const getAdsCountByCountry = async (req, res) => {
       GROUP BY country;
     `;
     const result = await pool.query(query);
-    console.log(result);
+    console.log("getAdsCountByCountry ", result);
     res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
     console.error("Error fetching ad counts by country:", error);
@@ -87,10 +87,10 @@ const getMostRecentAds = async (req, res) => {
       LIMIT 10;
     `;
     const result = await pool.query(query);
-    console.log("RESULT: " + result);
+    console.log("getMostRecentAds: RESULT: " + result);
     res.status(200).json({ success: true, data: result.rows });
   } catch (error) {
-    console.log("HERERERERE");
+    console.log("getMostRecentAds error triggered");
 
     console.error("Error fetching most recent ads:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -139,7 +139,7 @@ const getAdsByUserId = async (req, res) => {
     console.log("Missing user_id in getAdsByUserId");
   }
 
-  console.log(user_id);
+  console.log("getAdsByUserId ", user_id);
   try {
     const query = `
       SELECT * FROM ads
@@ -158,9 +158,7 @@ const getAdsByUserId = async (req, res) => {
 
 //Get ads by users tags. Is triggered when a user clicks on a tag and is redirected to the tags page
 const getAdsByTag = async (req, res) => {
-  // console.log("getAdsByTag");
   const { tag } = req.params;
-  // console.log(tag);
 
   try {
     const query = `SELECT * FROM ads

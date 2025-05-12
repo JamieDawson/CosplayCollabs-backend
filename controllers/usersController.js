@@ -2,6 +2,7 @@
 const pool = require("../config/db");
 require("dotenv").config();
 const axios = require("axios");
+const qs = require("qs");
 
 // Complete a user's profile after Auth0 signup process
 const completeProfile = async (req, res) => {
@@ -33,7 +34,7 @@ const completeProfile = async (req, res) => {
 // GET user by Auth0 ID from URL params
 const getUserByAuth0Id = async (req, res) => {
   const { auth0_id } = req.params;
-  console.log("Received auth0_id:", auth0_id); // <-- temporary log
+  console.log("getUserByAuth0Id");
   try {
     const result = await pool.query("SELECT * FROM users WHERE auth0_id = $1", [
       auth0_id,
@@ -51,12 +52,12 @@ const getUserByAuth0Id = async (req, res) => {
 
 //DELETE ad by ID
 const deleteAdById = async (req, res) => {
-  console.log("deleteAdById");
+  console.log("deleteAdById called");
   const { id } = req.params;
-  console.log(id);
+  console.log("deleteAdById ", id);
   try {
     const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
-    console.log(result);
+    console.log("deleteAdById " + result);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Ad not found" });
