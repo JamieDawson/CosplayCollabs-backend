@@ -79,7 +79,7 @@ const getAdsCountByCountry = async (req, res) => {
 
 // Used for the front page to get the most recent ads
 const getMostRecentAds = async (req, res) => {
-  console.log("getMostRecentAds called");
+  console.log("Function getMostRecentAds called");
   try {
     const query = `
       SELECT * FROM ads
@@ -134,6 +134,7 @@ const getAdsByState = async (req, res) => {
 
 //Get the ads by a Users ID. This is used for users profiles!
 const getAdsByUserId = async (req, res) => {
+  console.log("Function getAdsByUserId called");
   const { user_id } = req.params;
   if (!user_id) {
     console.log("Missing user_id in getAdsByUserId");

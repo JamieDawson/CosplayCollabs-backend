@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   completeProfile,
   getUserByAuth0Id,
+  getUserByUsername,
   deleteAdById,
   updateAdById,
   deleteUser,
@@ -14,6 +15,9 @@ router.post("/api/users/complete-profile", completeProfile);
 
 // GET - retrieve a user's data by Auth0 ID (from req.params)
 router.get("/api/users/:auth0_id", getUserByAuth0Id);
+
+// GET - Retrieve a user's data by username
+router.get("/api/users/username/:username", getUserByUsername);
 
 // DELETE ad by ID
 router.delete("/api/users/delete/:id", deleteAdById);

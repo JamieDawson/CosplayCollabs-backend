@@ -50,6 +50,26 @@ const getUserByAuth0Id = async (req, res) => {
   }
 };
 
+//GEt user by username
+const getUserByUsername = async (req, res) => {
+  const { username } = req.params;
+  console.log("Function getUserByUsername called");
+
+  try {
+    const result = await pool.query("SELECT * FROM users WHERE username = $1", [
+      username,
+    ]);
+    if (result.rows.length > 0) {
+      res.status(200).json({ success: true, user: result.rows[0] });
+    } else {
+      res.status(404).json({ success: false, message: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching user by username:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 //DELETE ad by ID
 const deleteAdById = async (req, res) => {
   console.log("deleteAdById called");
@@ -233,6 +253,7 @@ const deleteUser = async (req, res) => {
 module.exports = {
   completeProfile,
   getUserByAuth0Id,
+  getUserByUsername,
   deleteAdById,
   updateAdById,
   deleteUser,
