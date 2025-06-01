@@ -98,7 +98,8 @@ const getMostRecentAds = async (req, res) => {
 };
 
 //Pass in Country, State, and City to get ads for that location
-const getAdsByLocation = async (req, res) => {
+const getAdsByCity = async (req, res) => {
+  console.log("getAdByCity");
   const { country, state, city } = req.params;
 
   try {
@@ -119,6 +120,7 @@ const getAdsByLocation = async (req, res) => {
 
 //Get ads by state
 const getAdsByState = async (req, res) => {
+  console.log("getAdByState");
   const { country, state } = req.params;
 
   try {
@@ -175,12 +177,83 @@ const getAdsByTag = async (req, res) => {
   } catch (error) {}
 };
 
+//NEEDS TO GO INTO adsCOntroller - DELETE ad by ID
+const deleteAdById = async (req, res) => {
+  console.log("deleteAdById called");
+  const { id } = req.params;
+  console.log("deleteAdById ", id);
+  try {
+    const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
+    console.log("deleteAdById " + result);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Ad deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ad:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//NEEDS TO GO INTO adsController -
+const updateAdById = async (req, res) => {
+  const { id } = req.params;
+  const {
+    title,
+    description,
+    country,
+    state,
+    city,
+    instagramPostUrl,
+    keywords,
+  } = req.body;
+
+  try {
+    const query = `
+      UPDATE ads
+      SET title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          country = COALESCE($3, country),
+          state = COALESCE($4, state),
+          city = COALESCE($5, city),
+          instagram_post_url = COALESCE($6, instagram_post_url),
+          keywords = COALESCE($7, keywords)
+      WHERE id = $8
+      RETURNING *;
+    `;
+    const values = [
+      title,
+      description,
+      country,
+      state,
+      city,
+      instagramPostUrl,
+      keywords ? JSON.stringify(keywords) : null,
+      id,
+    ];
+
+    const result = await pool.query(query, values);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    res.status(200).json({ success: true, ad: result.rows[0] });
+  } catch (error) {
+    console.error("Error updating ad:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   createAd,
   getAdsCountByCountry,
-  getAdsByLocation,
+  getAdsByCity,
   getMostRecentAds,
   getAdsByUserId,
   getAdsByTag,
   getAdsByState,
+  deleteAdById,
+  updateAdById,
 };

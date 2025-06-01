@@ -5,8 +5,6 @@ const {
   completeProfile,
   getUserByAuth0Id,
   getUserByUsername,
-  deleteAdById,
-  updateAdById,
   deleteUser,
 } = require("../controllers/usersController");
 
@@ -18,12 +16,6 @@ router.get("/api/users/:auth0_id", getUserByAuth0Id);
 
 // GET - Retrieve a user's data by username
 router.get("/api/users/username/:username", getUserByUsername);
-
-// DELETE ad by ID
-router.delete("/api/users/delete/:id", deleteAdById);
-
-// UPDATE an ad by ID
-router.put("/api/users/update/:id", updateAdById);
 
 //DELETE a user out of Auth0 and Postgres
 router.delete("/api/users/delete-account/:id", deleteUser);
