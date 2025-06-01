@@ -134,13 +134,13 @@ const getAdsByState = async (req, res) => {
 
 //Get the ads by a Users ID. This is used for users profiles!
 const getAdsByUserId = async (req, res) => {
-  console.log("Function getAdsByUserId called");
   const { user_id } = req.params;
   if (!user_id) {
     console.log("Missing user_id in getAdsByUserId");
   }
 
-  console.log("getAdsByUserId ", user_id);
+  console.log("Ad Function getAdsByUserId called. user_id is ", user_id);
+
   try {
     const query = `
       SELECT * FROM ads

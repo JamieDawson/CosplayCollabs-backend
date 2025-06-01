@@ -34,7 +34,8 @@ const completeProfile = async (req, res) => {
 // GET user by Auth0 ID from URL params
 const getUserByAuth0Id = async (req, res) => {
   const { auth0_id } = req.params;
-  console.log("getUserByAuth0Id");
+  console.log("user function getUserByAuth0Id. user sub is ", req.params.sub);
+
   try {
     const result = await pool.query("SELECT * FROM users WHERE auth0_id = $1", [
       auth0_id,
@@ -51,18 +52,25 @@ const getUserByAuth0Id = async (req, res) => {
 };
 
 //GEt user by username
+// Get user by username
 const getUserByUsername = async (req, res) => {
   const { username } = req.params;
-  console.log("Function getUserByUsername called");
+  //console.log("user function getUserByUsername called. Username is ", username);
+
+  if (!username) {
+    return res.status(400).json({ error: "Username parameter is required" });
+  }
 
   try {
     const result = await pool.query("SELECT * FROM users WHERE username = $1", [
       username,
     ]);
+
     if (result.rows.length > 0) {
-      res.status(200).json({ success: true, user: result.rows[0] });
+      console.log("Result from getUserByUsername is ", result.rows[0]);
+      res.status(200).json({ user: result.rows[0] });
     } else {
-      res.status(404).json({ success: false, message: "User not found" });
+      res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
     console.error("Error fetching user by username:", error);
@@ -91,8 +99,6 @@ const deleteAdById = async (req, res) => {
 };
 
 const updateAdById = async (req, res) => {
-  console.log("updateAdById called");
-
   const { id } = req.params;
   const {
     title,
@@ -104,70 +110,120 @@ const updateAdById = async (req, res) => {
     keywords,
   } = req.body;
 
-  console.log("Updating Ad ID:", id);
-  console.log("New Data:", {
-    title,
-    description,
-    country,
-    state,
-    city,
-    instagramPostUrl,
-    keywords,
-  });
-
   try {
-    const fieldsToUpdate = [];
-    const values = [];
-    let query = "UPDATE ads SET ";
-
-    if (title) {
-      fieldsToUpdate.push("title = $" + (values.length + 1));
-      values.push(title);
-    }
-    if (description) {
-      fieldsToUpdate.push("description = $" + (values.length + 1));
-      values.push(description);
-    }
-    if (country) {
-      fieldsToUpdate.push("country = $" + (values.length + 1));
-      values.push(country);
-    }
-    if (state) {
-      fieldsToUpdate.push("state = $" + (values.length + 1));
-      values.push(state);
-    }
-    if (city) {
-      fieldsToUpdate.push("city = $" + (values.length + 1));
-      values.push(city);
-    }
-    if (instagramPostUrl) {
-      fieldsToUpdate.push("instagram_post_url = $" + (values.length + 1));
-      values.push(instagramPostUrl);
-    }
-    if (Array.isArray(keywords)) {
-      fieldsToUpdate.push("keywords = $" + (values.length + 1));
-      values.push(JSON.stringify(keywords)); // ✅ Convert array to JSON string
-    }
-
-    if (fieldsToUpdate.length === 0) {
-      return res.status(400).json({ error: "No fields provided for update" });
-    }
-
-    query += fieldsToUpdate.join(", ") + " WHERE id = $" + (values.length + 1);
-    values.push(id);
+    const query = `
+      UPDATE ads
+      SET title = COALESCE($1, title),
+          description = COALESCE($2, description),
+          country = COALESCE($3, country),
+          state = COALESCE($4, state),
+          city = COALESCE($5, city),
+          instagram_post_url = COALESCE($6, instagram_post_url),
+          keywords = COALESCE($7, keywords)
+      WHERE id = $8
+      RETURNING *;
+    `;
+    const values = [
+      title,
+      description,
+      country,
+      state,
+      city,
+      instagramPostUrl,
+      keywords ? JSON.stringify(keywords) : null,
+      id,
+    ];
 
     const result = await pool.query(query, values);
-
     if (result.rowCount === 0) {
       return res.status(404).json({ error: "Ad not found" });
     }
 
-    res.status(200).json({ success: true, message: "Ad updated successfully" });
+    res.status(200).json({ success: true, ad: result.rows[0] });
   } catch (error) {
     console.error("Error updating ad:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// const updateAdById = async (req, res) => {
+//   console.log("updateAdById called");
+
+//   const { id } = req.params;
+//   const {
+//     title,
+//     description,
+//     country,
+//     state,
+//     city,
+//     instagramPostUrl,
+//     keywords,
+//   } = req.body;
+
+//   console.log("Updating Ad ID:", id);
+//   console.log("New Data:", {
+//     title,
+//     description,
+//     country,
+//     state,
+//     city,
+//     instagramPostUrl,
+//     keywords,
+//   });
+
+//   try {
+//     const fieldsToUpdate = [];
+//     const values = [];
+//     let query = "UPDATE ads SET ";
+
+//     if (title) {
+//       fieldsToUpdate.push("title = $" + (values.length + 1));
+//       values.push(title);
+//     }
+//     if (description) {
+//       fieldsToUpdate.push("description = $" + (values.length + 1));
+//       values.push(description);
+//     }
+//     if (country) {
+//       fieldsToUpdate.push("country = $" + (values.length + 1));
+//       values.push(country);
+//     }
+//     if (state) {
+//       fieldsToUpdate.push("state = $" + (values.length + 1));
+//       values.push(state);
+//     }
+//     if (city) {
+//       fieldsToUpdate.push("city = $" + (values.length + 1));
+//       values.push(city);
+//     }
+//     if (instagramPostUrl) {
+//       fieldsToUpdate.push("instagram_post_url = $" + (values.length + 1));
+//       values.push(instagramPostUrl);
+//     }
+//     if (Array.isArray(keywords)) {
+//       fieldsToUpdate.push("keywords = $" + (values.length + 1));
+//       values.push(JSON.stringify(keywords)); // ✅ Convert array to JSON string
+//     }
+
+//     if (fieldsToUpdate.length === 0) {
+//       return res.status(400).json({ error: "No fields provided for update" });
+//     }
+
+//     query += fieldsToUpdate.join(", ") + " WHERE id = $" + (values.length + 1);
+//     values.push(id);
+
+//     const result = await pool.query(query, values);
+
+//     if (result.rowCount === 0) {
+//       return res.status(404).json({ error: "Ad not found" });
+//     }
+
+//     res.status(200).json({ success: true, message: "Ad updated successfully" });
+//   } catch (error) {
+//     console.error("Error updating ad:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 //DELETE user from both Auth0 and Postgres Users table!
 const deleteUser = async (req, res) => {
