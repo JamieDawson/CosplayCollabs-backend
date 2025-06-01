@@ -23,11 +23,11 @@ router.get("/", (req, res) => {
 // POST route to create a new ad
 router.post("/api/ads", createAd);
 
-//GET route to get ads by city
-router.get("/api/ads/:country/:state/:city", getAdsByCity);
-
 //GEt route by state
 router.get("/api/ads/by-state/:country/:state", getAdsByState);
+
+//GET route to get ads by city
+router.get("/api/ads/:country/:state/:city", getAdsByCity);
 
 // GET route to get ad counts by country
 router.get("/api/ads/count-by-country", getAdsCountByCountry);
