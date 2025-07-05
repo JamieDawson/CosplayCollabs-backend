@@ -17,6 +17,12 @@ const createAd = async (req, res) => {
     return res.status(400).json({ error: "user_id and title are required" });
   }
 
+  const normalizeTag = (tag) => tag.toLowerCase().replace(/\s+/g, "");
+
+  const normalizedKeywords = Array.isArray(keywords)
+    ? keywords.map(normalizeTag)
+    : [];
+
   console.log("Inserting ad with values:", {
     user_id,
     title,
@@ -25,7 +31,7 @@ const createAd = async (req, res) => {
     state,
     city,
     instagramPostUrl,
-    keywords,
+    keywords: normalizedKeywords,
   });
 
   try {
@@ -43,11 +49,8 @@ const createAd = async (req, res) => {
       state || null,
       city || null,
       instagramPostUrl || null,
-      keywords ? JSON.stringify(keywords) : null,
+      JSON.stringify(normalizedKeywords),
     ];
-
-    console.log("Query:", query);
-    console.log("Values:", values);
 
     const result = await pool.query(query, values);
     res.status(201).json({ success: true, ad: result.rows[0] });
