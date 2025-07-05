@@ -62,153 +62,6 @@ const createAd = async (req, res) => {
   }
 };
 
-// Controller to get ad counts by country
-const getAdsCountByCountry = async (req, res) => {
-  console.log("Fetching ad counts by country...");
-  try {
-    const query = `
-      SELECT country, COUNT(*) AS ad_count
-      FROM ads
-      GROUP BY country;
-    `;
-    const result = await pool.query(query);
-    console.log("getAdsCountByCountry ", result);
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    console.error("Error fetching ad counts by country:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-// Used for the front page to get the most recent ads
-const getMostRecentAds = async (req, res) => {
-  console.log("Function getMostRecentAds called");
-  try {
-    const query = `
-      SELECT * FROM ads
-      ORDER BY created_at DESC
-      LIMIT 10;
-    `;
-    const result = await pool.query(query);
-    console.log("getMostRecentAds: RESULT: " + result);
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    console.log("getMostRecentAds error triggered");
-
-    console.error("Error fetching most recent ads:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//Pass in Country, State, and City to get ads for that location
-const getAdsByCity = async (req, res) => {
-  console.log("getAdByCity");
-  const { country, state, city } = req.params;
-
-  try {
-    const query = `
-      SELECT * FROM ads
-      WHERE country = $1 AND state = $2 AND city = $3;
-    `;
-    const values = [country, state, city];
-
-    const result = await pool.query(query, values);
-
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    console.error("Error fetching ads by location:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//Get ads by state
-const getAdsByState = async (req, res) => {
-  console.log("getAdByState");
-  const { country, state } = req.params;
-
-  try {
-    const query = `SELECT * FROM ads WHERE country=$1 AND state=$2`;
-    const values = [country, state];
-    const result = await pool.query(query, values);
-
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    res.status(500).json({ error: "Not pulling ads by state" });
-  }
-};
-
-//Get the ads by a Users ID. This is used for users profiles!
-const getAdsByUserId = async (req, res) => {
-  const { user_id } = req.params;
-  if (!user_id) {
-    console.log("Missing user_id in getAdsByUserId");
-  }
-
-  console.log("Ad Function getAdsByUserId called. user_id is ", user_id);
-
-  try {
-    const query = `
-      SELECT * FROM ads
-      WHERE user_id = $1;
-    `;
-    const values = [user_id];
-
-    const result = await pool.query(query, values);
-
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    console.error("Error fetching ads by location:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//Get ads by users tags. Is triggered when a user clicks on a tag and is redirected to the tags page
-const getAdsByTag = async (req, res) => {
-  let { tag } = req.params;
-
-  // ✅ Normalize the tag exactly as you do on insert/search
-  tag = tag.toLowerCase().replace(/\s+/g, "");
-
-  try {
-    const query = `
-      SELECT * FROM ads
-      WHERE EXISTS (
-        SELECT 1 FROM jsonb_array_elements_text(keywords) AS kw
-        WHERE kw.value = $1
-      );
-    `;
-
-    const values = [tag];
-    const result = await pool.query(query, values);
-
-    res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {
-    console.error("Error fetching ads by tag:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//NEEDS TO GO INTO adsCOntroller - DELETE ad by ID
-const deleteAdById = async (req, res) => {
-  console.log("deleteAdById called");
-  const { id } = req.params;
-  console.log("deleteAdById ", id);
-  try {
-    const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
-    console.log("deleteAdById " + result);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: "Ad not found" });
-    }
-
-    res.status(200).json({ success: true, message: "Ad deleted successfully" });
-  } catch (error) {
-    console.error("Error deleting ad:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
-
-//NEEDS TO GO INTO adsController -
 const updateAdById = async (req, res) => {
   const { id } = req.params;
   const {
@@ -265,14 +118,156 @@ const updateAdById = async (req, res) => {
   }
 };
 
+const deleteAdById = async (req, res) => {
+  console.log("deleteAdById called");
+  const { id } = req.params;
+  console.log("deleteAdById ", id);
+  try {
+    const result = await pool.query("DELETE FROM ads WHERE id = $1", [id]);
+    console.log("deleteAdById " + result);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Ad not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Ad deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting ad:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+// Used for the front page to get the most recent ads
+const getMostRecentAds = async (req, res) => {
+  console.log("Function getMostRecentAds called");
+  try {
+    const query = `
+      SELECT * FROM ads
+      ORDER BY created_at DESC
+      LIMIT 10;
+    `;
+    const result = await pool.query(query);
+    console.log("getMostRecentAds: RESULT: " + result);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.log("getMostRecentAds error triggered");
+
+    console.error("Error fetching most recent ads:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const getAdsByUserId = async (req, res) => {
+  const { user_id } = req.params;
+  if (!user_id) {
+    console.log("Missing user_id in getAdsByUserId");
+  }
+
+  console.log("Ad Function getAdsByUserId called. user_id is ", user_id);
+
+  try {
+    const query = `
+      SELECT * FROM ads
+      WHERE user_id = $1;
+    `;
+    const values = [user_id];
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ads by location:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const getAdsByTag = async (req, res) => {
+  let { tag } = req.params;
+
+  // ✅ Normalize the tag exactly as you do on insert/search
+  tag = tag.toLowerCase().replace(/\s+/g, "");
+
+  try {
+    const query = `
+      SELECT * FROM ads
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(keywords) AS kw
+        WHERE kw.value = $1
+      );
+    `;
+
+    const values = [tag];
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ads by tag:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//Pass in Country, State, and City to get ads for that location
+const getAdsByCity = async (req, res) => {
+  console.log("getAdByCity");
+  const { country, state, city } = req.params;
+
+  try {
+    const query = `
+      SELECT * FROM ads
+      WHERE country = $1 AND state = $2 AND city = $3;
+    `;
+    const values = [country, state, city];
+
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ads by location:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+//Get ads by state
+const getAdsByState = async (req, res) => {
+  console.log("getAdByState");
+  const { country, state } = req.params;
+
+  try {
+    const query = `SELECT * FROM ads WHERE country=$1 AND state=$2`;
+    const values = [country, state];
+    const result = await pool.query(query, values);
+
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    res.status(500).json({ error: "Not pulling ads by state" });
+  }
+};
+
+const getAdsCountByCountry = async (req, res) => {
+  console.log("Fetching ad counts by country...");
+  try {
+    const query = `
+      SELECT country, COUNT(*) AS ad_count
+      FROM ads
+      GROUP BY country;
+    `;
+    const result = await pool.query(query);
+    console.log("getAdsCountByCountry ", result);
+    res.status(200).json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error("Error fetching ad counts by country:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   createAd,
+  deleteAdById,
+  updateAdById,
   getAdsCountByCountry,
   getAdsByCity,
   getMostRecentAds,
   getAdsByUserId,
   getAdsByTag,
   getAdsByState,
-  deleteAdById,
-  updateAdById,
 };
