@@ -164,20 +164,28 @@ const getAdsByUserId = async (req, res) => {
 
 //Get ads by users tags. Is triggered when a user clicks on a tag and is redirected to the tags page
 const getAdsByTag = async (req, res) => {
-  const { tag } = req.params;
+  let { tag } = req.params;
+
+  // ✅ Normalize the tag exactly as you do on insert/search
+  tag = tag.toLowerCase().replace(/\s+/g, "");
 
   try {
-    const query = `SELECT * FROM ads
-       WHERE EXISTS (
-         SELECT 1 FROM jsonb_array_elements_text(keywords) AS kw
-          WHERE LOWER(kw.value) = $1
-    );`;
+    const query = `
+      SELECT * FROM ads
+      WHERE EXISTS (
+        SELECT 1 FROM jsonb_array_elements_text(keywords) AS kw
+        WHERE kw.value = $1
+      );
+    `;
 
     const values = [tag];
     const result = await pool.query(query, values);
 
     res.status(200).json({ success: true, data: result.rows });
-  } catch (error) {}
+  } catch (error) {
+    console.error("Error fetching ads by tag:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
 
 //NEEDS TO GO INTO adsCOntroller - DELETE ad by ID
@@ -213,6 +221,13 @@ const updateAdById = async (req, res) => {
     keywords,
   } = req.body;
 
+  // ✅ Normalize tags: lowercase and remove spaces
+  const normalizeTag = (tag) => tag.toLowerCase().replace(/\s+/g, "");
+
+  const normalizedKeywords = Array.isArray(keywords)
+    ? keywords.map(normalizeTag)
+    : null;
+
   try {
     const query = `
       UPDATE ads
@@ -226,6 +241,7 @@ const updateAdById = async (req, res) => {
       WHERE id = $8
       RETURNING *;
     `;
+
     const values = [
       title,
       description,
@@ -233,7 +249,7 @@ const updateAdById = async (req, res) => {
       state,
       city,
       instagramPostUrl,
-      keywords ? JSON.stringify(keywords) : null,
+      normalizedKeywords ? JSON.stringify(normalizedKeywords) : null,
       id,
     ];
 
